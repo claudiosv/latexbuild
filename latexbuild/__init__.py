@@ -15,7 +15,9 @@ building PDF and HTML files from latex jinja2 templates
 # Import useful functions from lower modules into main
 #######################################################################
 from .build import LatexBuild
+
 # TODO: from .jinja2_extension import render_latex_template
+
 
 #######################################################################
 # Define helper functions to demonstrate usage of LatexBuild

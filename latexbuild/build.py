@@ -13,6 +13,7 @@ file for the common case builds with the texlive builds.
 import logging
 import os
 import shutil
+from pathlib import Path
 
 from . import assertions
 from .jinja2_extension import render_latex_template
@@ -21,7 +22,6 @@ from .utils import (
     list_filepathes_with_predicate,
     random_name_filepath,
     random_str_uuid,
-    read_file,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class LatexBuild:
             self.template_kwargs,
         )
 
-    def run_latex(self, cmd_wo_infile, path_outfile):
+    def run_latex(self, cmd_wo_infile, path_outfile_str):
         """
         Main runner for latex build
 
@@ -78,12 +78,13 @@ class LatexBuild:
             cmd_wo_infile, otherwise the process will fail
         """
         # Generate path variables
+        path_outfile = Path(path_outfile_str)
         text_template = self.get_text_template()
-        path_template_random = random_name_filepath(self.path_template)
-        path_template_dir = os.path.dirname(path_template_random)
-        path_template_random_no_ext = os.path.splitext(path_template_random)[0]
-        path_template_random_aux = path_template_random_no_ext + ".aux"
-        ext_outfile = os.path.splitext(path_outfile)[-1]
+        path_template_random = Path(random_name_filepath(self.path_template))
+        path_template_dir = path_template_random.parent
+        path_template_random_no_ext = path_template_random.stem
+        path_template_random_aux = Path(str(path_template_random_no_ext) + ".aux")
+        ext_outfile = path_outfile.suffix
         path_outfile_initial = f"{path_template_random_no_ext}{ext_outfile}"
 
         # Handle special case of MS Word
@@ -96,7 +97,7 @@ class LatexBuild:
 
         try:
             # Write template variable to a temporary file
-            with open(path_template_random, "w") as temp_file:
+            with path_template_random.open("w") as temp_file:
                 temp_file.write(text_template)
             cmd = [*cmd_wo_infile, path_template_random]
             old_aux, new_aux = random_str_uuid(1), random_str_uuid(2)
@@ -104,7 +105,7 @@ class LatexBuild:
                 # Run the relevant Latex command until old aux != new aux
                 stdout = check_output_cwd(cmd, path_template_dir)
                 LOGGER.debug("\n".join(stdout))
-                old_aux, new_aux = new_aux, read_file(path_template_random_aux)
+                old_aux, new_aux = new_aux, path_template_random_aux.read_text()
 
             # Handle special case of MS Word
             if cmd_docx:

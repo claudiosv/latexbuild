@@ -7,9 +7,9 @@ one or more errors on certain conditions not being bet. If the
 assertion is met, the functions will return True
 """
 
-import os
 import shutil
 from inspect import isclass
+from pathlib import Path
 
 
 def has_file_extension(filepath, ext_required):
@@ -20,7 +20,7 @@ def has_file_extension(filepath, ext_required):
     :param ext_required: the expected file extension
         examples: ".pdf", ".html", ".tex"
     """
-    ext = os.path.splitext(filepath)[-1]
+    ext = Path(filepath).suffix
     if ext != ext_required:
         msg_tmpl = "The extension for {}, which is {}, does not equal {}"
         msg_format = msg_tmpl.format(filepath, ext, ext_required)

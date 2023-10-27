@@ -1,6 +1,6 @@
 [project]
 name = "latexbuild"
-version = "0.2.2"
+version = "0.3"
 description = "Building Jinja2 templates with latex"
 readme = "README.rst"
 authors = [{name = "Samuel Roeca", email = "samuel.roeca@gmail.com"}]

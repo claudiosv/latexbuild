@@ -35,7 +35,7 @@ def check_output_cwd(args, cwd, timeout=None):
         for line in iter(active_subprocess.stdout.readline, b""):
             line_str = line.decode().strip()
             stdout_stderr.append(line_str)
-            print(line_str)
+            # TODO: capture latex output? print(line_str)
         active_subprocess.wait(timeout=timeout)
         returncode = active_subprocess.returncode
     if returncode != 0:

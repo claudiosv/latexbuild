@@ -42,12 +42,6 @@ def list_filepathes_with_predicate(path_dir, predicate):
     return [f for f in files if f.startswith(predicate)]
 
 
-def read_file(filepath):
-    """Read the contents of a file, returning a string variable"""
-    with open(filepath) as file_to_read:
-        return file_to_read.read()
-
-
 def recursive_apply(inval, func):
     """
     Recursively apply a function to all levels of nested iterables
