@@ -1,0 +1,31 @@
+[project]
+name = "latexbuild"
+version = "0.2.2"
+description = "Building Jinja2 templates with latex"
+readme = "README.rst"
+authors = [{name = "Samuel Roeca", email = "samuel.roeca@gmail.com"}]
+license = "MIT"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "Topic :: Text Processing :: Markup :: LaTeX",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: English",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3 :: Only"
+]
+keywords = ["latex", "jinja2", "build", "html", "texlive"]
+dependencies = [ "Jinja2>=3.1.2" ]
+
+[build-system]
+requires = ["setuptools" ]#, "wheel"]
+
+[project.optional-dependencies]
+# Add optional dependencies if any
+dev = [ "black", "ruff" ]
+
+[project.scripts]
+# Add scripts if any
