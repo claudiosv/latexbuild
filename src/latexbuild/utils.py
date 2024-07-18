@@ -1,6 +1,6 @@
 """General utility functions that do not fit into another module"""
 
-import os
+from pathlib import Path
 import uuid
 
 
@@ -13,7 +13,7 @@ def random_str_uuid(string_length):
     return random[0:string_length]
 
 
-def random_name_filepath(path_full, length_random=5):
+def random_name_filepath(path_full: Path, length_random=5):
     """
     Take a filepath, add randome characters to its basename,
     and return the new filepath
@@ -21,12 +21,11 @@ def random_name_filepath(path_full, length_random=5):
     :param filename: either a filename or filepath
     :param length_random: length of random string to be generated
     """
-    path_full_pre_extension, extension = os.path.splitext(path_full)
     random_str = random_str_uuid(length_random)
-    return f"{path_full_pre_extension}{random_str}{extension}"
+    return path_full.with_stem(f"{path_full.stem}{random_str}")
 
 
-def list_filepathes_with_predicate(path_dir, predicate):
+def list_filepathes_with_predicate(path_dir: Path, predicate: str) -> list[Path]:
     """
     List all filepathes in a directory that begin with predicate
 
@@ -34,13 +33,15 @@ def list_filepathes_with_predicate(path_dir, predicate):
     :param predicate: the predicate you want to test the directory's
         found files against
     """
-    if not os.path.isdir(path_dir):
+    if not isinstance(path_dir, Path):
+        msg = "path_dir must be a Path object"
+        raise ValueError(msg)
+
+    if not path_dir.is_dir():
         msg = f"{path_dir} is not a directory"
         raise ValueError(msg)
-    contents = (os.path.join(path_dir, a) for a in os.listdir(path_dir))
-    files = (c for c in contents if os.path.isfile(c))
-    return [f for f in files if f.startswith(predicate)]
 
+    return [ f for f in path_dir.glob(f"{predicate}*") if f.is_file() ]
 
 def recursive_apply(inval, func):
     """

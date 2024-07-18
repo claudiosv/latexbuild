@@ -15,6 +15,7 @@ building PDF and HTML files from latex jinja2 templates
 # Import useful functions from lower modules into main
 #######################################################################
 from .build import LatexBuild
+from .jinja2_extension import render_latex_template
 
 # TODO: from .jinja2_extension import render_latex_template
 
@@ -22,7 +23,7 @@ from .build import LatexBuild
 #######################################################################
 # Define helper functions to demonstrate usage of LatexBuild
 #######################################################################
-def build_pdf(path_jinja2, template_name, path_outfile, template_kwargs=None):
+def build_pdf(path_jinja2, template_name, path_outfile, template_kwargs=None, filters=None):
     """
     Helper function for building a pdf from a latex jinja2 template
 
@@ -38,6 +39,7 @@ def build_pdf(path_jinja2, template_name, path_outfile, template_kwargs=None):
         path_jinja2,
         template_name,
         template_kwargs,
+        filters
     )
     return latex_template_object.build_pdf(path_outfile)
 

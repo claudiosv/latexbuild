@@ -11,7 +11,6 @@ file for the common case builds with the texlive builds.
 """
 
 import logging
-import os
 import shutil
 from pathlib import Path
 
@@ -25,7 +24,11 @@ from .utils import (
 )
 
 LOGGER = logging.getLogger(__name__)
+from rich.console import Console
+from rich.traceback import install
 
+install(show_locals=True)
+console = Console()
 
 class LatexBuild:
     """
@@ -39,19 +42,25 @@ class LatexBuild:
     :att path_template: the full path to the jinja2 template for rendering
     """
 
-    def __init__(self, path_jinja2, template_name, template_kwargs=None):
+    def __init__(self, path_jinja2: Path, template_name: str, template_kwargs=None, filters=None):
+        if not isinstance(path_jinja2, Path):
+            raise ValueError("path_jinja2 must be a Path object")
+
         # Initialize attributes
         self.path_jinja2 = path_jinja2
         self.template_name = template_name
         self.template_kwargs = template_kwargs
-        self.path_template = os.path.join(path_jinja2, template_name)
+        self.path_template =  path_jinja2 / template_name
+        self.filters = filters
 
         # Ensure attributes conform to appropriate type, raising error
         # as soon as possible
         if self.template_kwargs:
             assert isinstance(self.template_kwargs, dict)
-        assert os.path.isdir(self.path_jinja2)
-        assert os.path.isfile(self.path_template)
+
+
+        assert self.path_jinja2.is_dir()
+        assert self.path_template.is_file()
 
     def get_text_template(self):
         """Return the text rendered by the desired jinja2 template"""
@@ -59,6 +68,7 @@ class LatexBuild:
             self.path_jinja2,
             self.template_name,
             self.template_kwargs,
+            self.filters,
         )
 
     def run_latex(self, cmd_wo_infile, path_outfile_str):
@@ -83,9 +93,9 @@ class LatexBuild:
         path_template_random = Path(random_name_filepath(self.path_template))
         path_template_dir = path_template_random.parent
         path_template_random_no_ext = path_template_random.stem
-        path_template_random_aux = Path(str(path_template_random_no_ext) + ".aux")
+        path_template_random_aux = path_template_random.with_suffix(".aux")
         ext_outfile = path_outfile.suffix
-        path_outfile_initial = f"{path_template_random_no_ext}{ext_outfile}"
+        path_outfile_initial = path_template_random.with_suffix(ext_outfile)
 
         # Handle special case of MS Word
         if cmd_wo_infile[0] == "latex2rtf" and len(cmd_wo_infile) == 1:
@@ -99,7 +109,7 @@ class LatexBuild:
             # Write template variable to a temporary file
             with path_template_random.open("w") as temp_file:
                 temp_file.write(text_template)
-            cmd = [*cmd_wo_infile, path_template_random]
+            cmd = [*cmd_wo_infile, str(path_template_random)]
             old_aux, new_aux = random_str_uuid(1), random_str_uuid(2)
             while old_aux != new_aux:
                 # Run the relevant Latex command until old aux != new aux
@@ -109,13 +119,14 @@ class LatexBuild:
 
             # Handle special case of MS Word
             if cmd_docx:
-                cmd_word = [*cmd_docx, path_template_random]
+                cmd_word = [*cmd_docx, str(path_template_random)]
                 stdout = check_output_cwd(cmd_word, path_template_dir)
                 LOGGER.debug("\n".join(stdout))
 
             shutil.move(path_outfile_initial, path_outfile)
             LOGGER.info(f"Built {path_outfile} from {self.path_template}")
         except Exception:
+            console.print_exception(show_locals=True)
             LOGGER.exception("Failed during latex build")
         finally:
             # Clean up all temporary files associated with the
@@ -124,8 +135,10 @@ class LatexBuild:
                 path_template_dir,
                 path_template_random_no_ext,
             )
+
             for path_gen_file in path_gen:
-                os.remove(path_gen_file)
+                path_gen_file.unlink()
+
         return text_template
 
     def build_pdf(self, path_outfile):
